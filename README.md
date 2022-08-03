@@ -1,7 +1,20 @@
 # MIND
 This repository contains a Python implementation of Morphometric INverse Divergence (MIND) calculation for the estimation of structural similarity networks in the brain.
 
-This implementation is designed to automatcally compute MIND networks given the default outputs of FreeSurfer. MIND networks can be calculated easily as follows:
+#Installation
+You can download this code by cloning it as follows: 
+```
+git clone https://github.com/isebenius/MIND.git 
+```
+# MIND computation
+The main function for calculation MIND networks is the compute_mind() within MIND.py. This can be imported into a script as follows:
+```
+import sys
+sys.path.insert(1, '/path/to/MIND')
+from MIND import compute_MIND
+```
+
+This implementation is designed to automatcally compute MIND networks given the default outputs of FreeSurfer. MIND networks can thus be calculated easily as follows:
 
 ```
 ##Specify path to surfer directory. This is the path to the Freesurfer folder containing all standard output directories (e.g. surf, mri, label)
