@@ -10,7 +10,7 @@ git clone https://github.com/isebenius/MIND.git
 The main function for calculation MIND networks is the compute_mind() function within MIND.py. This can be imported into a script as follows:
 ```
 import sys
-sys.path.insert(1, '/path/to/MIND')
+sys.path.insert(1, '/path/to/MIND/code/')
 from MIND import compute_MIND
 ```
 
