@@ -51,6 +51,10 @@ def compute_MIND(surf_dir, features, parcellation):
 
 	vertex_data = vertex_data[columns]
 
+	#standardize across the brain for each feature to get each dimension to roughly the same scale.
+	for x in features_used:
+    	vertex_data[x] = (vertex_data[x] - vertex_data[x].mean())/vertex_data[x].std()
+
 	#Drop outliers. This drops vertices with an MAD score in ANY of the used features. Can be customized.
 	# z_score_threshhold = 7
 	# outliers_per_features = np.array([is_outlier(vertex_data[x].values, z_score_threshhold) for x in features_used]).T
