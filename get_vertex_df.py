@@ -16,7 +16,7 @@ def get_vertex_df(surf_dir, features, parcellation):
 
     for feature in features:
             if feature not in all_features:
-                raise Exception(str(feat) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD.')
+                raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD.')
     
     n_features = len(all_features)
 
