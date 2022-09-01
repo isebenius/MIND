@@ -9,14 +9,14 @@ from MIND_helpers import calculate_mind_network, is_outlier
 def get_vertex_df(surf_dir, features, parcellation):
 
     #specify data locations
-    surfer_location = surf_dir
+    surfer_location = surf_dir + '/'
 
     #All possible features you could want.
     all_features = ['CT','Vol','SA','MC','SD']
 
     for feature in features:
-            if feature not in all_features:
-                raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD.')
+        if feature not in all_features:
+            raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD.')
     
     n_features = len(all_features)
 
