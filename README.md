@@ -30,3 +30,11 @@ parcellation = 'aparc'
 MIND = compute_MIND(path_to_surf_dir, features, parcellation) 
 
 ```
+
+## Required files
+Basic usage of MIND requires the vertex-data, which is stored in the surf/ folder, in addition to the .annot files in the label/ folder.
+
+Importantly, the has only been tested using output from Freesurfer v5.3 and with the DK, DK-318, and HCP parcellations. Different versions of FreeSurfer, and for different templates, may have slightly different naming conventions for vertex-level data. For example, the naming convention of 'unknown' brain regions often differs between parcellations (i.e., or even between different versions of the same parcellation. Thus, if you use MIND with other parcelaltions or versions of FreeSurfer, you'll have to make small manuall changes to the code specific naming conventions (e.g. altering line 57 of get_vertex_df.py to set the unknown_regions variable to include all unwanted regions).
+
+## Including additional features
+If you would like to include additional features from volumetric measurements from other modalities (e.g. FA or MD from DWI images), you can do this by registering the DTI image to T1 image used by FreeSurfer e.g. by using the B0 image and or mri_coreg or bbregister commands. Then, you can use the mri_vol2surf command to project the volumetric data to surface fiels. You will then need to adapt get_vertex_df.py to handle these new features and files. 
