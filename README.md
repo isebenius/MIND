@@ -38,3 +38,9 @@ Importantly, this code has only been tested using output from Freesurfer v5.3 an
 
 ## Including additional features
 If you would like to include additional features from volumetric measurements from other modalities (e.g. FA or MD from DWI images), you can do this by registering the DTI image to T1 image used by FreeSurfer e.g. by using the B0 image and or mri_coreg or bbregister commands. Then, you can use the mri_vol2surf command to project the volumetric data to surface fiels. You will then need to adapt get_vertex_df.py to handle these new features and files. 
+
+## Citing
+
+If you use this software to compute MIND network in your work, please cite the following paper:
+
+Sebenius, Isaac et al. MIND Networks: Robust Estimation of Structural Similarity from Brain MRI. bioRxiv (2022). doi: https://doi.org/10.1101/2022.10.12.511922
