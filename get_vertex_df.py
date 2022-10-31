@@ -56,6 +56,8 @@ def get_vertex_df(surf_dir, features, parcellation):
     combined_regions = np.hstack((used_regions_l, used_regions_r))
     unknown_regions = [x for x in combined_regions if (('?' in x) | ('unknown' in x) | ('Medial_Wall' in x))]
 
+    combined_regions = np.array([x for x in combined_regions if x not in unknown_regions])
+    
     vertex_data_dict = defaultdict()
 
     #Now load up all the vertex-level data!
