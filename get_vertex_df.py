@@ -54,7 +54,7 @@ def get_vertex_df(surf_dir, features, parcellation):
     used_regions_r = np.array([value for key, value in rh_convert_dict.items() if key in used_labels_r])
 
     combined_regions = np.hstack((used_regions_l, used_regions_r))
-    unknown_regions = [x for x in combined_regions if (('?' in x) | ('unknown' in x))]
+    unknown_regions = [x for x in combined_regions if (('?' in x) | ('unknown' in x) | ('Medial_Wall' in x))]
 
     vertex_data_dict = defaultdict()
 
