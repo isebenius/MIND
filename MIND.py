@@ -5,7 +5,7 @@ import pandas as pd
 from MIND_helpers import calculate_mind_network, is_outlier
 from get_vertex_df import get_vertex_df
 
-def compute_MIND(surf_dir, features, parcellation):
+def compute_MIND(surf_dir, features, parcellation, filter_vertices=False):
 
 	vertex_data, regions = get_vertex_df(surf_dir, features, parcellation)
 
@@ -39,15 +39,18 @@ def compute_MIND(surf_dir, features, parcellation):
 	'''
 
 	columns = ['Label'] + features_used
+	
+	#The filter_vertices parameter determines you want to filter out all the non-biologically feasible vertices (i.e. any of volume, surface area or cortical thickness equalling zero)	
+	if filter_vertices:
 
-	if 'CT' in vertex_data.columns:
-		vertex_data = vertex_data.drop(vertex_data[vertex_data['CT'] == 0].index)
+		if 'CT' in vertex_data.columns:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data['CT'] == 0].index)
 
-	if 'Vol' in vertex_data.columns:
-		vertex_data = vertex_data.drop(vertex_data[vertex_data['Vol'] == 0].index)
+		if 'Vol' in vertex_data.columns:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data['Vol'] == 0].index)
 
-	if 'SA' in vertex_data.columns:
-		vertex_data = vertex_data.drop(vertex_data[vertex_data['SA'] == 0].index)
+		if 'SA' in vertex_data.columns:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data['SA'] == 0].index)
 
 	vertex_data = vertex_data[columns]
 
