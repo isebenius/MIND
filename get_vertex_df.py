@@ -3,7 +3,7 @@ import numpy as np
 import os
 import pandas as pd
 from os.path import exists
-from nibabel.freesurfer.io import read_morph_data, read_annot
+from nibabel.freesurfer.io import read_morph_data, read_annot, project_volume_data
 from collections import defaultdict
 from MIND_helpers import calculate_mind_network, is_outlier
 
