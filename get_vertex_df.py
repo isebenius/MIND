@@ -105,8 +105,8 @@ def get_vertex_df(surf_dir, features, parcellation):
             print('T1/T2 files exist')
             temp = surf_dir.split('/')
             temp = [x for x in temp.split('/') if ((len(x)!= 0) or x == '/')]
-            subject = temp.split('/')[-1]
-            subjects_dir = '_'.join(temp.split('/')[0:-1])
+            subject = temp[-1]
+            subjects_dir = '_'.join(temp[0:-1])
             os.system('export SUBJECTS_DIR='+subjects_dir)
             T1=project_volume_data(filepath = T1_loc, hemi = hemi, subject_id = subject)
             T2=project_volume_data(filepath = T2_loc, hemi = hemi, subject_id = subject)
