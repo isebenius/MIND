@@ -99,13 +99,13 @@ def get_vertex_df(surf_dir, features, parcellation):
             print("SD file exists\n")
             hemi_data_dict['SD'] = read_morph_data(sd_loc)
         
-        if exists(T1_file) & exists(T2_file):
+        if exists(T1_loc) & exists(T2_loc):
             print('T1/T2 files exist')
             subject = surf_dir.split('/')[-1]
             subjects_dir = '_'.join(surf_dir.split('/')[0:-1])
             os.environ('export SUBJECTS_DIR='+subjects_dir)
-            T1=project_volume_data(filepath = T1_file, hemi = hemi, subject_id = subject)
-            T2=project_volume_data(filepath = T2_file, hemi = hemi, subject_id = subject)
+            T1=project_volume_data(filepath = T1_loc, hemi = hemi, subject_id = subject)
+            T2=project_volume_data(filepath = T2_loc, hemi = hemi, subject_id = subject)
             hemi_data_dict['T1T2'] = T1/T2
 
         used_features = [x for x in all_features if x in list(hemi_data_dict.keys())]
