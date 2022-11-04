@@ -76,11 +76,8 @@ def get_vertex_df(surf_dir, features, parcellation):
         mc_loc = surfer_location + 'surf/' + hemi + '.curv'
         sd_loc = surfer_location + 'surf/' + hemi + '.sulc'
         
-        if T1_loc == None:
-            T1_loc = surfer_location + 'mri/T1.mgz'
-
-        if T2_loc == None
-            T2_loc = surfer_location + 'mri/T2.mgz'
+        T1_loc = surfer_location + 'mri/T1.mgz'
+        T2_loc = surfer_location + 'mri/T2.mgz'
 
         if exists(ct_loc):
             print("CT file exists")
