@@ -12,11 +12,11 @@ def get_vertex_df(surf_dir, features, parcellation):
     surfer_location = surf_dir + '/'
 
     #All possible features you could want.
-    all_features = ['CT','Vol','SA','MC','SD']
+    all_features = ['CT','Vol','SA','MC','SD','T1T2']
 
     for feature in features:
         if feature not in all_features:
-            raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD.')
+            raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD, T1T2.')
     
     n_features = len(all_features)
 
@@ -76,6 +76,12 @@ def get_vertex_df(surf_dir, features, parcellation):
         mc_loc = surfer_location + 'surf/' + hemi + '.curv'
         sd_loc = surfer_location + 'surf/' + hemi + '.sulc'
         
+        if T1_loc == None:
+            T1_loc = surfer_location + 'mri/T1.mgz'
+
+        if T2_loc == None
+            T2_loc = surfer_location + 'mri/T2.mgz'
+
         if exists(ct_loc):
             print("CT file exists")
             hemi_data_dict['CT'] = read_morph_data(ct_loc)
@@ -96,6 +102,14 @@ def get_vertex_df(surf_dir, features, parcellation):
             print("SD file exists\n")
             hemi_data_dict['SD'] = read_morph_data(sd_loc)
         
+        if exists(T1_file) & exists(T2_file):
+            print('T1/T2 files exist')
+            subject = surf_dir.split('/')[-1]
+            subjects_dir = '_'.join(surf_dir.split('/')[0:-1])
+            os.environ('export SUBJECTS_DIR='+subjects_dir)
+            T1=project_volume_data(filepath = T1_file, hemi = hemi, subject_id = subject)
+            T2=project_volume_data(filepath = T2_file, hemi = hemi, subject_id = subject)
+            hemi_data_dict['T1T2'] = T1/T2
 
         used_features = [x for x in all_features if x in list(hemi_data_dict.keys())]
         
