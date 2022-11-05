@@ -41,7 +41,7 @@ def compute_MIND(surf_dir, features, parcellation, filter_vertices=False):
 	columns = ['Label'] + features_used
 	
 	#The filter_vertices parameter determines you want to filter out all the non-biologically feasible vertices (i.e. any of volume, surface area or cortical thickness equalling zero)	
-	if filter_vertices:
+	if filter_vertices == True:
 
 		if 'CT' in vertex_data.columns:
 			vertex_data = vertex_data.drop(vertex_data[vertex_data['CT'] == 0].index)
