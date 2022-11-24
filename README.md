@@ -41,6 +41,6 @@ If you would like to include additional features from volumetric measurements fr
 
 ## Citing
 
-If you use this software to compute MIND network in your work, please cite the following paper:
+If you use this software to compute MIND networks in your research, please cite the following paper:
 
 Sebenius, Isaac et al. MIND Networks: Robust Estimation of Structural Similarity from Brain MRI. bioRxiv (2022). doi: https://doi.org/10.1101/2022.10.12.511922
