@@ -4,25 +4,113 @@ import os
 import pandas as pd
 from os.path import exists
 from nibabel.freesurfer.io import read_morph_data, read_annot
+from nibabel.freesurfer.mghformat import load
 from collections import defaultdict
 from MIND_helpers import calculate_mind_network, is_outlier
 
 def get_vertex_df(surf_dir, features, parcellation):
 
+    '''
+    INPUT SPECIFICATIONS:
+    • surf_dir (str) : This is a string the location containing all relevant directories output by FreeSurfer (i.e. label, mri, surf).
+
+    • features (list):
+        This function accepts the "features" argument as a list containing items in the following forms:
+            str: 
+
+                • One of ['CT','Vol','SA','MC','SD']. In this form, the function will automatically assume that the requested features are found in the surf_dir/surf directory and correspond to the following files:
+                    CT: ?h.thickness
+                    Vol: ?h.volume
+                    SA: ?h.area
+                    MC: ?h.curv
+                    SD: ?h.sulc 
+
+                • You may also pass a string in the form 'thickness', 'volume', 'sulc', etc, which refer directly to default files already found in the surf_dir/surf directory for both rh and lh.
+                For example, the function will interpret the entry 'thickness' to refer to the files surf_dir/surf/lh.thickness and surf_dir/surf/rh.thickness
+
+                • Finally, you may pass a string in the form of a FULL path as follows: with a question mark '?' indicating the position specifying the hemisphere such as "full/path/to/?h.feature".
+                Using this formulation will cause the command to look for files that exactly match both "full/path/to/lh.feature" and "full/path/to/rh.feature". If the left and right version of the files aren't exactly the same otherwise, this won't work.
+
+
+            tuple: (path/to/lh_surface_feature, path/to/rh_surface_feature)
+                • If you would rather pass other features directly into the function, you must specify the locations (using paths) of both the left and right versions of each desired feature as a tuple.
+                **The files must be readable by nibabel's read_morph_data function, i.e. in FreeSurfer's surface format!***
+                So for example, if you have used the provided register_and_vol2surf function to generate surface maps of fractional anisotropy in a separate folder, you could pass them as an element in the list like:
+                (path/to/lh.FA.mgh, path/to/rh.FA.mgh)
+
+        A valid list of feature values combining these different input types would therefore be: ['CT','SD',(path/to/lh_feature1, path/to/rh_feature1), (path/to/lh_feature2, path/to/rh_feature2)] 
+    
+    • parcellation (str): This is a string the location containing parcellation scheme to be used. The files 'lh.' + parcellation + '.annot' and 'rh.' + parcellation + '.annot' must exist inside the surf_dir/label directory.
+    '''
+
     #specify data locations
     surfer_location = surf_dir + '/'
 
-    #All possible features you could want.
-    all_features = ['CT','Vol','SA','MC','SD','T1T2']
+    #Check inputs!
+    if (exists(surfer_location + '/label/lh.' + parcellation + '.annot') == False) or (exists(surfer_location + '/label/rh.' + parcellation + '.annot') == False):
+        raise Exception('Parcellation files not found.')
 
-    if "T1T2" in features:
-        from surfer import project_volume_data
-
-    for feature in features:
-        if feature not in all_features:
-            raise Exception(str(feature) + ' is invalid or not yet available. Avalailable features are: SA, Vol, CT, MC, SD, T1T2.')
+    all_shorthand_features = ['CT','Vol','SA','MC','SD']
+    all_shorthand_features_dict = dict(zip(all_shorthand_features, ['thickness','volume','area','curv','sulc']))
     
-    n_features = len(all_features)
+    lh_feature_locs = []
+    rh_feature_locs = []
+
+    #Check feature inputs, store location of files
+    for feature in features:
+        if feature in all_shorthand_features:
+            lh_loc = surfer_location + 'surf/lh.' + all_shorthand_features_dict[feature]
+            rh_loc = surfer_location + 'surf/rh.' + all_shorthand_features_dict[feature]
+            
+            if (exists(lh_loc) == False) or (exists(rh_loc) == False):
+                raise Exception('Feature for input "' + feature +'" not found.')
+            else:
+                lh_feature_locs.append(lh_loc)
+                rh_feature_locs.append(rh_loc)
+
+        elif type(feature) is str:
+
+            if len(feature.split('/')) == 1:
+                lh_loc = surfer_location + 'surf/lh.' + feature
+                rh_loc = surfer_location + 'surf/rh.' + feature
+                
+                if (exists(lh_loc) == False) or (exists(rh_loc) == False):
+                    raise Exception('Feature for input "' + feature +'" not found.')
+
+                else:
+                    lh_feature_locs.append(lh_loc)
+                    rh_feature_locs.append(rh_loc)
+
+            else:
+                lh_loc = feature.split('/')
+                lh_loc[-1] = 'l' + lh_loc[-1][1:]
+                lh_loc = '/'.join(lh_loc)
+
+                rh_loc = feature.split('/')
+                rh_loc[-1] = 'r' + rh_loc[-1][1:]
+                rh_loc = '/'.join(rh_loc)
+                
+                if (exists(lh_loc) == False) or (exists(rh_loc) == False):
+                    raise Exception('Feature for input "' + feature +'" not found.')
+
+                else:
+                    lh_feature_locs.append(lh_loc)
+                    rh_feature_locs.append(rh_loc)
+
+        elif type(feature) is tuple:
+
+            lh_loc = feature[0]
+            rh_loc = feature[1]
+            
+            if (exists(lh_loc) == False) or (exists(rh_loc) == False):
+                raise Exception('Feature for input "' + feature[0] +'" or "' + feature[1] +'" not found.')
+
+            else:
+                lh_feature_locs.append(lh_loc)
+                rh_feature_locs.append(rh_loc)
+
+        else:
+            raise Exception('Unrecognized format for feature input: ', feature)
 
     #Get annotation files
     lh_annot = read_annot(surfer_location + '/label/lh.' + parcellation + '.annot', orig_ids = True)
@@ -65,61 +153,37 @@ def get_vertex_df(surf_dir, features, parcellation):
 
     #Now load up all the vertex-level data!
     for hemi in ['lh','rh']:
-        
+        print(hemi)
+        hemi_data_dict = defaultdict()
+
         if hemi == 'lh':
             print('Loading left hemisphere data:')
+
+            for i, lh_feature_loc in enumerate(lh_feature_locs):
+                print(lh_feature_loc)
+                #check for mgh/mgz format vs regular curv files
+                if lh_feature_loc.endswith('mgh') or lh_feature_loc.endswith('mgz'):
+                    hemi_data_dict['Feature_' + str(i)] = load(lh_feature_loc).get_fdata().flatten()
+                else:
+                    hemi_data_dict['Feature_' + str(i)] = read_morph_data(lh_feature_loc)
 
         elif hemi == 'rh':
             print('Loading right hemisphere data:')
 
-        hemi_data_dict = defaultdict()
+            for i, rh_feature_loc in enumerate(rh_feature_locs):
 
-        ct_loc = surfer_location + 'surf/' + hemi + '.thickness'
-        vol_loc = surfer_location + 'surf/' + hemi + '.volume'
-        sa_loc = surfer_location + 'surf/' + hemi + '.area'
-        mc_loc = surfer_location + 'surf/' + hemi + '.curv'
-        sd_loc = surfer_location + 'surf/' + hemi + '.sulc'
-        
-        T1_loc = surfer_location + 'mri/T1.mgz'
-        T2_loc = surfer_location + 'mri/T2.mgz'
+                if rh_feature_loc.endswith('mgh') or rh_feature_loc.endswith('mgz'):
+                    hemi_data_dict['Feature_' + str(i)] = load(rh_feature_loc).get_fdata().flatten()
+                else:
+                    hemi_data_dict['Feature_' + str(i)] = read_morph_data(rh_feature_loc)
 
-        if exists(ct_loc):
-            print("CT file exists")
-            hemi_data_dict['CT'] = read_morph_data(ct_loc)
-            
-        if exists(vol_loc):
-            print("Vol file exists")
-            hemi_data_dict['Vol'] = read_morph_data(vol_loc)
-        
-        if exists(mc_loc):
-            print("MC file exists")
-            hemi_data_dict['MC'] = read_morph_data(mc_loc)
-            
-        if exists(sa_loc):
-            print("SA file exists")
-            hemi_data_dict['SA'] = read_morph_data(sa_loc)
-        
-        if exists(sd_loc):
-            print("SD file exists\n")
-            hemi_data_dict['SD'] = read_morph_data(sd_loc)
-        
-        if exists(T1_loc) & exists(T2_loc):
-            print('T1/T2 files exist')
-            temp = surf_dir.split('/')
-            temp = [x for x in temp if ((len(x)!= 0) or x == '/')]
-            subject = temp[-1]
-            subjects_dir = '_'.join(temp[0:-1])
-            os.system('export SUBJECTS_DIR='+subjects_dir)
-            T1=project_volume_data(filepath = T1_loc, hemi = hemi, subject_id = subject, projsum = 'point', projarg=0.5)
-            T2=project_volume_data(filepath = T2_loc, hemi = hemi, subject_id = subject, projsum = 'point', projarg=0.5)
-            hemi_data_dict['T1T2'] = T1/T2
-
-        used_features = [x for x in all_features if x in list(hemi_data_dict.keys())]
-        
+        used_features = list(hemi_data_dict.keys())
+        print(used_features)
         hemi_data = np.zeros((len(used_features) + 1, len(annot_dict[hemi][0])))
 
         hemi_data[0] = annot_dict[hemi][0]
         for i, feature in enumerate(used_features):
+            print(i, feature)
             hemi_data[i + 1] = hemi_data_dict[feature]
         
         col_names = ['Label'] + used_features
@@ -136,4 +200,4 @@ def get_vertex_df(surf_dir, features, parcellation):
     #Output data
     print("features used: ")
     print(used_features)
-    return vertex_data, combined_regions
+    return vertex_data, combined_regions, used_features
