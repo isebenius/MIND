@@ -7,51 +7,29 @@ from get_vertex_df import get_vertex_df
 
 def compute_MIND(surf_dir, features, parcellation, filter_vertices=False):
 
-	vertex_data, regions = get_vertex_df(surf_dir, features, parcellation)
-
-	features_requested = features
-	features_available = vertex_data.columns[1:]
-
-	for feat in features_requested:
-		if feat not in features_available:
-			raise Exception(str(feat) + ' not available')
-
-	features_used = [x for x in features_requested if x in features_available]
-
+	vertex_data, regions, features_used = get_vertex_df(surf_dir, features, parcellation)
+	
 	'''
 	Filter the data, do some QC checks here.
-
-	-The important step is to remove vertices with 
-	zero thickness, zero volume, or zero surface area, as these are degenerate and make no physical sense.
-
-	I also do very lenient outlier removal using using MAD scores.
-	MAD roughly assumes a normal distribution so I use a very large tolerace (7 adjusted z-score threshhold for now)
-	in order to only get rid of really problematic outliers - the KL step shouldn't be too
-	affected by smaller ones, and we don't want to be getting rid of signal or changing the distirbution in 
-	specific regions. THis step could be removed altogether and it would be fine.
-
-	Other things like log-transforms could all be done here, but should probably be applied with caution.
-	(After all one of the big benefits of the KL method is it doesn't assume normality! 
-	And by transforming the data it becomes arguably less interpretable/might be other issues there.)
-
 	To double check everything, please look at histograms of individual features to make sure everything looks ok.
 
 	'''
 
 	columns = ['Label'] + features_used
 	
+	feature_conv_dict = dict(zip(list(features), list(features_used)))
 	#The filter_vertices parameter determines you want to filter out all the non-biologically feasible vertices (i.e. any of volume, surface area or cortical thickness equalling zero)	
 	if filter_vertices == True:
 
-		if 'CT' in vertex_data.columns:
-			vertex_data = vertex_data.drop(vertex_data[vertex_data['CT'] == 0].index)
+		if 'CT' in features:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data[feature_conv_dict['CT']] == 0].index)
 
-		if 'Vol' in vertex_data.columns:
-			vertex_data = vertex_data.drop(vertex_data[vertex_data['Vol'] == 0].index)
+		if 'Vol' in features:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data[feature_conv_dict['Vol']] == 0].index)
 
-		if 'SA' in vertex_data.columns:
-			vertex_data = vertex_data.drop(vertex_data[vertex_data['SA'] == 0].index)
-
+		if 'SA' in features:
+			vertex_data = vertex_data.drop(vertex_data[vertex_data[feature_conv_dict['SA']] == 0].index)
+	
 	vertex_data = vertex_data[columns]
 
 	#standardize across the brain for each feature to get each dimension to roughly the same scale.
@@ -69,10 +47,6 @@ def compute_MIND(surf_dir, features, parcellation, filter_vertices=False):
 
 	print('Done!')
 	return MIND
-	#Save output
-	#fname = 'MIND.' + parcellation + '.' + '_'.join(sorted(features_used)) + '.csv'
-	#MIND.to_csv(outdir+'/'+fname)
-	#np.savetxt(outdir + '/' + parcellation + "_regions.csv", combined_regions, delimiter = ',', fmt="%s")
 
 
 

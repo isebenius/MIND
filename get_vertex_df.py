@@ -3,7 +3,6 @@ import numpy as np
 import os
 import pandas as pd
 from os.path import exists
-from surfer import project_volume_data
 from nibabel.freesurfer.io import read_morph_data, read_annot
 from collections import defaultdict
 from MIND_helpers import calculate_mind_network, is_outlier
@@ -15,6 +14,9 @@ def get_vertex_df(surf_dir, features, parcellation):
 
     #All possible features you could want.
     all_features = ['CT','Vol','SA','MC','SD','T1T2']
+
+    if "T1T2" in features:
+        from surfer import project_volume_data
 
     for feature in features:
         if feature not in all_features:
