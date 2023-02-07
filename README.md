@@ -36,15 +36,51 @@ Basic usage of MIND requires vertex-level data in FreeSrufer surface overlay for
 Importantly, this code has only been tested using output from Freesurfer v5.3 and with the DK, DK-318, and HCP parcellations. Using different templates or versions of FreeSurfer will require you to adapt this code due to slightly different naming conventions. For example, the naming convention of 'unknown' brain regions, which are dropped, differs between parcellations. Thus, if you use MIND with other parcellations or versions of FreeSurfer, you'll have to make small manual changes to the code to comply with idiosyncratic naming conventions (e.g. altering line 149 of get_vertex_df.py to set the unknown_regions variable to include all unwanted regions).
 
 ## Passing additional features to the compute_MIND command:
-By default, the _features_ parameter accepts some combination of the elements ['CT','MC','Vol','SD','SA'] as the features to include, based on the ?h.thickness, ?h.curv, ?h.volume, ?h.sulc, and ?h.area Freesurfer surface features. 
+By default, the _features_ parameter accepts some combination of the elements [CT,MC,Vol,SD,SA] as the features to include, based on the ?h.thickness, ?h.curv, ?h.volume, ?h.sulc, and ?h.area Freesurfer surface features. 
 
-However, additional features can be included to MIND computation by including the full path to the other files, provided they are in FreeSurfer's surface overlay format and follow the naming convention "?h.feature." For example, if you wanted to construct a MIND network using cortical thickness as well as a distinct feature A, you could pass the following combination of parameters as the 'features' variable in _compute_MIND_:
+Additional features can be included to MIND computation by including the full path to the other files, provided they are in FreeSurfer's surface overlay format and follow the naming convention "?h.feature." For example, if you wanted to construct a MIND network using cortical thickness as well as a distinct feature A, you could pass the following combination of parameters as the 'features' variable in _compute_MIND_:
 
 ```
 features = ['CT', 'path/to/?h.feature']
 ```
-A more complete specificatin of the accepted input formats for the _features_ parameter is found in the function specification in _get_vertex_df.py_. 
+A more complete specification of the accepted input formats for the _compute_MIND_ command is as follows, reiterated in the function description of _get_vertex_df.py_.
 
+```
+def get_vertex_df(surf_dir, features, parcellation):
+
+    '''
+    INPUT SPECIFICATIONS:
+    • surf_dir (str) : This is a string the location containing all relevant directories output by FreeSurfer (i.e. label, mri, surf).
+
+    • features (list):
+        This function accepts the "features" argument as a list containing items in the following forms:
+            str: 
+
+                • One of ['CT','Vol','SA','MC','SD']. In this form, the function will automatically assume that the requested features are found in the surf_dir/surf directory and correspond to the following files:
+                    CT: ?h.thickness
+                    Vol: ?h.volume
+                    SA: ?h.area
+                    MC: ?h.curv
+                    SD: ?h.sulc 
+
+                • You may also pass a string in the form 'thickness', 'volume', 'sulc', etc, which refer directly to default files already found in the surf_dir/surf directory for both rh and lh.
+                For example, the function will interpret the entry 'thickness' to refer to the files surf_dir/surf/lh.thickness and surf_dir/surf/rh.thickness
+
+                • Finally, you may pass a string in the form of a FULL path as follows: with a question mark '?' indicating the position specifying the hemisphere such as "full/path/to/?h.feature".
+                Using this formulation will cause the command to look for files that exactly match both "full/path/to/lh.feature" and "full/path/to/rh.feature". If the left and right version of the files aren't exactly the same otherwise, this won't work.
+
+
+            tuple: (path/to/lh_surface_feature, path/to/rh_surface_feature)
+                • If you would rather pass other features directly into the function, you must specify the locations (using paths) of both the left and right versions of each desired feature as a tuple.
+                **The files must be readable by nibabel's read_morph_data function, i.e. in FreeSurfer's surface format!***
+                So for example, if you have used the provided register_and_vol2surf function to generate surface maps of fractional anisotropy in a separate folder, you could pass them as an element in the list like:
+                (path/to/lh.FA.mgh, path/to/rh.FA.mgh)
+
+        A valid list of feature values combining these different input types would therefore be: ['CT','SD',(path/to/lh_feature1, path/to/rh_feature1), (path/to/lh_feature2, path/to/rh_feature2)] 
+    
+    • parcellation (str): This is a string the location containing parcellation scheme to be used. The files 'lh.' + parcellation + '.annot' and 'rh.' + parcellation + '.annot' must exist inside the surf_dir/label directory.
+    '''
+```
 ## Including volumetric features
 We include additional functions to generate surface maps features from volumetric MRI features using _nipype_, both in _register_and_vol2surf.py_. The first function, _register_and_vol2surf_, registers a volumetric image to T1 then projects to the white surface. The second related function, _calculate_surface_t1t2_ratio_, registers T2 to T1, divides T1 by the registered T2, then projects to the white surface. As mentioned, features must be in vertex-space for inclusion into MIND network construction.
 
