@@ -46,9 +46,46 @@ features = ['CT', 'path/to/?h.feature']
 A more complete specificatin of the accepted input formats for the _features_ parameter is found in the function specification in _get_vertex_df.py_. 
 
 ## Including volumetric features
-We include additional functions to generate surface maps features from volumetric MRI features. Usage of these functions requires both Freesurfer and afni to be installed and available on the system. 
+We include additional functions to generate surface maps features from volumetric MRI features using _nipype_, both in _register_and_vol2surf.py_. The first function, _register_and_vol2surf_, registers a volumetric image to T1 then projects to the white surface. The second related function, _calculate_surface_t1t2_ratio_, registers T2 to T1, divides T1 by the registered T2, then projects to the white surface. As mentioned, features must be in vertex-space for inclusion into MIND network construction.
 
-If you would like to include additional features from volumetric measurements from other modalities (e.g. FA or MD from DWI images), you can do this by registering the DTI image to T1 image used by FreeSurfer e.g. by using the B0 image and or mri_coreg or bbregister commands. Then, you can use the mri_vol2surf command to project the volumetric data to surface fiels. You will then need to adapt get_vertex_df.py to handle these new features and files. 
+Usage of these functions requires both Freesurfer and afni to be installed and available on the system, and requires the specified subject to have been processed using FreeSurfer's _recon-all_ command.
+
+```
+function register_and_vol2surf(mov, subject_id, out_dir, b0 = None, feature_name = 'vol-feature', contrast = 't2', sampling_units = 'frac', sampling_range = (0.2,0.8,0.1), sampling_method = 'average', cleanup=True):
+  '''
+  This commands registers a volumetric image to T1 then projects to the white surface.
+  
+  mov: the volume to be registered.
+	subject_id: The subject id, found in SUBJECTS_DIR.
+	out_dir: path to output files.
+	b0: if registering DWI images, this is the image to use for registration (using the B0 or S0 is recommended).
+	feature_name: the name of the feature you would like to project (e.g., FA etc.). This is just so the output files are named nicely.
+	contrast: either 't1' or 't2' based on the contrast of the registration image:
+	sampling units: either 'frac' or 'mm'
+	sampling method: 'point’ or ‘max’ or ‘average,’ tells the command how to sample.
+	sampling range: a float or a tuple of the form: (a float, a float, a float)) – Sampling range - a point or a tuple of (min, max, step).
+	cleanup: boolean, whether to delete all intermediate files or not.
+  '''
+ 
+function calculate_surface_t1t2_ratio(t2_loc, subject_id, out_dir, t1_loc = None, feature_name = 'T2', contrast = 't2', sampling_units = 'frac', sampling_range = (0.2,0.8,0.1), sampling_method = 'average', cleanup=True):
+
+  '''
+  This commands registers T2 to T1, divides T1 by the registered T2, then projects to the white surface.
+  We recommend using the T2.mgz file in the mri/ folder output from freesurfer.
+  
+  mov: the volume to be registered.
+	subject_id: The subject id, found in SUBJECTS_DIR.
+	out_dir: path to output files.
+	t1_loc: the location.
+	feature_name: the name of the feature you would like to project (e.g., FA etc.). This is just so the output files are named nicely.
+	contrast: either 't1' or 't2' based on the contrast of the registration image:
+	sampling units: either 'frac' or 'mm'
+	sampling method: 'point’ or ‘max’ or ‘average,’ tells the command how to sample.
+	sampling range: a float or a tuple of the form: (a float, a float, a float)) – Sampling range - a point or a tuple of (min, max, step).
+	cleanup: boolean, whether to delete all intermediate files or not.
+```
+
+After these commands have been run, the output surface files can then be passed as features into the _compute_MIND_ command.
 
 ## Citing
 
