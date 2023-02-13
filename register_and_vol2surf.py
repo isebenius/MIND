@@ -25,7 +25,7 @@ def register_and_vol2surf(mov, subject_id, out_dir, b0 = None, feature_name = 'v
 	cleanup: boolean, whether to delete all intermediate files or not.
 	'''
 
-	out_reg_file = out_dir + '/' + feature_name + '-T1-reg.lta'
+	out_reg_file = out_dir + '/' + feature_name + '-T1-reg.dat'
 
 	if b0 == None:
 		b0 == mov
@@ -68,7 +68,7 @@ def calculate_surface_t1t2_ratio(t2_loc, subject_id, out_dir, t1_loc = None, fea
 	cleanup: boolean, whether to delete all intermediate files or not.
 	'''
 
-	out_reg_file = out_dir + '/' + feature_name + '-T1-reg.lta'
+	out_reg_file = out_dir + '/' + feature_name + '-T1-reg.dat'
 	bbreg = BBRegister(subject_id=subject_id, source_file=t2_loc, init='fsl', subjects_dir=os.environ.get("SUBJECTS_DIR"), contrast_type=contrast, out_reg_file = out_reg_file)
 	os.system(bbreg.cmdline)
 	#bbregister
