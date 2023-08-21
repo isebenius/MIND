@@ -129,4 +129,4 @@ After these commands have been run, the output surface files can then be passed 
 
 If you use this software to compute MIND networks in your research, please cite the following paper:
 
-Sebenius, Isaac et al. MIND Networks: Robust Estimation of Structural Similarity from Brain MRI. bioRxiv (2022). doi: https://doi.org/10.1101/2022.10.12.511922
+Sebenius, I., Seidlitz, J., Warrier, V. et al. Robust Estimation of Cortical Similarity Networks from Brain MRI. Nat Neurosci 26, 1461–1471 (2023). https://doi.org/10.1038/s41593-023-01376-7
