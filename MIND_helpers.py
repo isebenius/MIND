@@ -87,7 +87,7 @@ def calculate_mind_network(data_df, feature_cols, region_list):
 
     MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))), \
                         index = region_list, columns = region_list)
-    
+
     #Get only desired regions
     data_df = data_df.loc[data_df['Label'].isin(region_list)]
     
