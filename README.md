@@ -125,6 +125,9 @@ function calculate_surface_t1t2_ratio(t2_loc, subject_id, out_dir, t1_loc = None
 
 After these commands have been run, the output surface files can then be passed as features into the _compute_MIND_ command.
 
+## Repeated values and univariate networks
+It is worth explicitly noting that MIND is only valid for use on strictly continuous distributions. Because of this, data that contains many repeated values will compromise the validity of MIND results. If your vertex-level data contains many repeated values, the code will fail. This is most likely to happen when only a single feature is considered in the MIND network. In the case that a quasi-continuous distribution has many repeated values, one workaround is to estimate the empirical distribution of values within each region of interest and resample from it. This workaround is implemented in with the 'resample' flag in the calculate_mind_network function.  
+
 ## Citing
 
 If you use this software to compute MIND networks in your research, please cite the following paper:
