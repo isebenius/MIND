@@ -1,6 +1,7 @@
 from scipy.spatial import cKDTree as KDTree
 import numpy as np
 import pandas as pd
+from scipy import stats
 from collections import defaultdict
 
 def is_outlier(points, thresh=7): #taken from https://stackoverflow.com/questions/22354094/pythonic-way-of-detecting-outliers-in-one-dimensional-observation-data
@@ -83,7 +84,7 @@ def get_KL(x, y, xtree, ytree): #Inspired by https://gist.github.com/atabakd/ed0
     return kl
 
 
-def calculate_mind_network(data_df, feature_cols, region_list):
+def calculate_mind_network(data_df, feature_cols, region_list, resample=False, n_samples = 4000):
 
     MIND = pd.DataFrame(np.zeros((len(region_list), len(region_list))), \
                         index = region_list, columns = region_list)
@@ -91,6 +92,26 @@ def calculate_mind_network(data_df, feature_cols, region_list):
     #Get only desired regions
     data_df = data_df.loc[data_df['Label'].isin(region_list)]
     
+    #Resample dataset if resample has been set to True and if it is UNIVARIATE ONLY. This should only be done if you are using a single feature which contains repeated values.
+    if (len(feature_cols) == 1) and resample==True:   
+        n_samples = n_samples
+        resampled_dataset = pd.DataFrame(np.zeros((n_samples, len(region_list))), columns = region_list)
+
+        for name, data in data_df.groupby('Label'):
+            resampled_dataset[name] = stats.gaussian_kde(data[feature_cols[0]]).resample(n_samples)[0]
+
+        resampled_dataset = resampled_dataset.melt(var_name = 'Label', value_name = feature_cols[0])
+        data_df = resampled_dataset
+
+    if (len(feature_cols) > 1) and resample==True:   
+        raise Exception("Resampling the data is only supported if you are using a single feature -- this is because higher order density estimation can be unreliable and very computationally expensive.")
+
+    #Check that there aren't many repeated values
+    percent_unique_vals = len(data_df[feature_cols].drop_duplicates())/len(data_df[feature_cols])
+    
+    if percent_unique_vals < 0.8:
+        raise Exception("There are many repeated values in the data, which compromises the validity of MIND calculation. Please minimize the number of repeated values in the data and try again. If you are using only one feature, try rerunning with resample=True.")
+
     grouped_data = data_df.groupby('Label')
 
     KDtrees = defaultdict(object)
